@@ -21,10 +21,11 @@ RUN printf '%s\n' \
     'set -eu' \
     'mkdir -p /paperclip/instances/default/ai-local-logins' \
     'chown -R 1000:1000 /paperclip/instances/default/ai-local-logins' \
-    'exec /usr/local/bin/docker-entrypoint.sh "$@"' \
+    'exec /usr/bin/tini -- /usr/local/bin/docker-entrypoint.sh "$@"' \
     > /usr/local/bin/paperclip-railway-entrypoint.sh \
     && chmod +x /usr/local/bin/paperclip-railway-entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/paperclip-railway-entrypoint.sh"]
+CMD ["node", "--import", "./server/node_modules/tsx/dist/loader.mjs", "server/dist/index.js"]
 
 EXPOSE 3100
