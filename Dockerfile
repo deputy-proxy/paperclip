@@ -13,6 +13,18 @@ ENV HOST=0.0.0.0 \
     SERVE_UI=true \
     GEMINI_SANDBOX=false
 
-EXPOSE 3100
+# Railway runs Paperclip as the node user. Prepare the persistent AI-login
+# tree as root before the upstream entrypoint drops privileges.
+USER root
+RUN printf '%s\n' \
+    '#!/bin/sh' \
+    'set -eu' \
+    'mkdir -p /paperclip/instances/default/ai-local-logins' \
+    'chown -R 1000:1000 /paperclip/instances/default/ai-local-logins' \
+    'exec /usr/local/bin/docker-entrypoint.sh "$@"' \
+    > /usr/local/bin/paperclip-railway-entrypoint.sh \
+    && chmod +x /usr/local/bin/paperclip-railway-entrypoint.sh
 
-# Keep the upstream Paperclip entrypoint/CMD.
+ENTRYPOINT ["/usr/local/bin/paperclip-railway-entrypoint.sh"]
+
+EXPOSE 3100
